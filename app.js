@@ -1,53 +1,50 @@
-const express = require('express');
-
+const express = require("express");
 const app = express();
-
-const mongoose = require('mongoose');
-
+const mongoose = require("mongoose");
+const Thing = require("./models/Thing");
+const thingSchema = require("./models/Thing");
 // connect to mongoDB
 
-mongoose.connect('mongodb+srv://admin:admin1234@cluster0.rkr2qx9.mongodb.net/?retryWrites=true&w=majority',
-  { useNewUrlParser: true,
-    useUnifiedTopology: true })
-  .then(() => console.log('Connexion à MongoDB réussie !'))
-  .catch(() => console.log('Connexion à MongoDB échouée !'));
+mongoose
+  .connect(
+    "mongodb+srv://admin:admin1234@cluster0.rkr2qx9.mongodb.net/?retryWrites=true&w=majority",
+    { useNewUrlParser: true, useUnifiedTopology: true }
+  )
+  .then(() => console.log("Connexion à MongoDB réussie !"))
+  .catch(() => console.log("Connexion à MongoDB échouée !"));
 
+app.use(express.json());
 
-
-app.use(express.json())
-
-// CORS 
+// CORS
 app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    next();
-  });
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content, Accept, Content-Type, Authorization"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+  );
+  next();
+});
 
-app.get('/api/stuff',(req,res,next)=>{
-    const stuff = [{
-        _id:"jlazmkfjd",
-        title:"First Object",
-        description:'First object informations',
-        imageUrl: 'https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg',
-        price:5049,
-        userId:'djslkfj'
-    },{
-        _id:"qllkhg",
-        title:"Second Object",
-        description:'Second object informations',
-        imageUrl: 'https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg',
-        price:1049,
-        userId:'djslkfj'
-    }]
-
-    res.status(200).json(stuff)
-})
-app.post('/api/stuff',(req,res,next)=>{
-    const bodyData = req.body;
-    console.log(bodyData)
-    res.status(201).json({
-        message: 'Obeject created'
-    });
-})
-module.exports= app;
+app.get("/api/stuff", (req, res, next) => {
+  Thing.find()
+    .then((things) => res.status(200).json(things))
+    .catch((error) => res.status(400).json({ error }));
+});
+app.post("/api/stuff", (req, res, next) => {
+  delete req.body._id;
+  const newThing = new Thing({ ...req.body });
+  // save the new element to DB
+  newThing
+    .save()
+    .then(() => {
+      res.status(201).json({
+        message: "object created successfully",
+      });
+    })
+    .catch((error) => res.status(400).json({ error }));
+});
+module.exports = app;
